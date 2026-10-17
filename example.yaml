@@ -1,0 +1,22 @@
+substitutions:
+  name: envmon-esp32
+  friendly_name: envmon-esp32
+
+packages:
+  envmon: github://kimiroo/esphome-envmon/envmon.yaml@v1.0.0
+
+api:
+  encryption:
+    key: !secret envmon_esp32_api_key
+
+ota:
+  - id: esphome_ota
+    password: !secret envmon_esp32_ota_password
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  ap:
+    password: !secret envmon_esp32_ap_password
+  # Optional: reach the device by IP instead of mDNS
+  # use_address: 192.168.1.50

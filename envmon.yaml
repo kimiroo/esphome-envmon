@@ -1,0 +1,130 @@
+# Environment monitor package (SHT45, SGP41, SPS30, Senseair S8)
+#
+# Optional substitutions: name, friendly_name
+# Credentials are NOT included. Add them in your device YAML:
+#   api.encryption.key, ota[id: esphome_ota].password,
+#   wifi.ssid / wifi.password, wifi.ap.password
+# See example.yaml.
+
+substitutions:
+  name: envmon
+  friendly_name: Envmon
+
+esphome:
+  name: ${name}
+  friendly_name: ${friendly_name}
+  project:
+    name: kimiroo.envmon
+    version: "1.0.0"
+  on_boot:
+    priority: -10
+    then:
+      - senseair.abc_disable: s8_co2
+      - logger.log: "ABC Calibration has been disabled on boot."
+
+dashboard_import:
+  package_import_url: github://kimiroo/esphome-envmon/envmon.yaml@v1.0.0
+
+esp32:
+  board: esp32dev
+  framework:
+    type: esp-idf
+
+logger:
+
+api:
+
+ota:
+  - platform: esphome
+    id: esphome_ota
+
+wifi:
+  power_save_mode: NONE
+  ap:
+    ssid: "${friendly_name} Fallback"
+
+captive_portal:
+
+# I2C for SHT45, SGP41, SPS30
+i2c:
+  sda: GPIO21
+  scl: GPIO22
+  scan: true
+  id: bus_i2c
+
+# UART for Senseair S8
+uart:
+  - id: bus_uart_s8
+    tx_pin: GPIO17   # to S8 RX
+    rx_pin: GPIO16   # to S8 TX
+    baud_rate: 9600
+
+sensor:
+  # SHT45: Temperature / Humidity
+  - platform: sht4x
+    address: 0x44
+    temperature:
+      name: "Room Temperature"
+      id: env_temp
+      filters:
+        - offset: 0.0
+    humidity:
+      name: "Room Humidity"
+      id: env_hum
+    update_interval: 10s
+
+  # SGP41: VOC / NOx Index
+  - platform: sgp4x
+    address: 0x59
+    voc:
+      name: "VOC Index"
+    nox:
+      name: "NOx Index"
+    update_interval: 10s
+
+  # SPS30: Particulate Matter
+  - platform: sps30
+    address: 0x69
+    pm_1_0:
+      name: "PM1.0"
+    pm_2_5:
+      name: "PM2.5"
+    pm_4_0:
+      name: "PM4.0"
+    pm_10_0:
+      name: "PM10.0"
+    pm_size:
+      name: "Typical Particle size"
+    update_interval: 10s
+
+  # Senseair S8: CO2
+  - platform: senseair
+    uart_id: bus_uart_s8
+    id: s8_co2
+    co2:
+      name: "CO2 Level"
+      id: co2_value
+    update_interval: 10s
+
+button:
+  - platform: template
+    name: "S8 Manual Calibration"
+    icon: "mdi:gauge-full"
+    on_press:
+      then:
+        - senseair.background_calibration: s8_co2
+        - logger.log: "Manual Calibration command sent to Senseair S8!"
+        - delay: 5s
+        - senseair.background_calibration_result: s8_co2
+
+  - platform: template
+    name: "S8 Get ABC Period"
+    on_press:
+      then:
+        - senseair.abc_get_period: s8_co2
+
+  - platform: template
+    name: "S8 Disable ABC"
+    on_press:
+      then:
+        - senseair.abc_disable: s8_co2
