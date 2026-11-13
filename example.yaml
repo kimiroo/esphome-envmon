@@ -3,15 +3,15 @@ substitutions:
   friendly_name: envmon-esp32
 
 packages:
-  envmon: github://kimiroo/esphome-envmon/envmon.yaml@v1.0.0
+  envmon: github://kimiroo/esphome-envmon/envmon.yaml@v1.0.1
 
 api:
   encryption:
     key: !secret envmon_esp32_api_key
 
 ota:
-  - id: esphome_ota
-    password: !secret envmon_esp32_ota_password
+  - id: !extend esphome_ota
+    encryption:  # reuses the api encryption key
 
 wifi:
   ssid: !secret wifi_ssid

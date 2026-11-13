@@ -2,7 +2,7 @@
 #
 # Optional substitutions: name, friendly_name
 # Credentials are NOT included. Add them in your device YAML:
-#   api.encryption.key, ota[id: esphome_ota].password,
+#   api.encryption.key, ota[id: esphome_ota].encryption (reuses the api key),
 #   wifi.ssid / wifi.password, wifi.ap.password
 # See example.yaml.
 
@@ -23,7 +23,7 @@ esphome:
       - logger.log: "ABC Calibration has been disabled on boot."
 
 dashboard_import:
-  package_import_url: github://kimiroo/esphome-envmon/envmon.yaml@v1.0.0
+  package_import_url: github://kimiroo/esphome-envmon/envmon.yaml@v1.0.1
 
 esp32:
   board: esp32dev
@@ -76,9 +76,9 @@ sensor:
   # SGP41: VOC / NOx Index
   - platform: sgp4x
     address: 0x59
-    voc:
+    voc_index:
       name: "VOC Index"
-    nox:
+    nox_index:
       name: "NOx Index"
     update_interval: 10s
 
